@@ -36,6 +36,8 @@ def main():
         obs, rew, done, info = env.step(action)
         env.render()
 
+        print(info)
+
         if done:
             print(f"Total reward: {rew}")
             obs = env.reset()

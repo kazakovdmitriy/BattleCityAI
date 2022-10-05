@@ -1,0 +1,7 @@
+venv
+.idea
+rom
+roms
+gym-retro
+models/ppo/
+models/a2c/

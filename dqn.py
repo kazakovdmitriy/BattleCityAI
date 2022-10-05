@@ -76,16 +76,16 @@ def stack_frames(frames, state, is_new=False):
 INPUT_SHAPE = (4, 84, 84)
 ACTION_SIZE = len(possible_actions)
 SEED = 0
-GAMMA = 0.5          # discount factor
+GAMMA = 0.1          # discount factor
 BUFFER_SIZE = 100000   # replay buffer size
 BATCH_SIZE = 32        # Update batch size
 LR = 0.0001            # learning rate
 TAU = 1e-3             # for soft update of target parameters
-UPDATE_EVERY = 300     # how often to update the network
+UPDATE_EVERY = 50     # how often to update the network
 UPDATE_TARGET = 10000  # After which thershold replay to be started
 EPS_START = 0.99       # starting value of epsilon
-EPS_END = 0.001         # Ending value of epsilon
-EPS_DECAY = 100         # Rate by which epsilon to be decayed
+EPS_END = 0.01         # Ending value of epsilon
+EPS_DECAY = 500         # Rate by which epsilon to be decayed
 
 agent = DQNAgent(INPUT_SHAPE, ACTION_SIZE, SEED, device, BUFFER_SIZE, BATCH_SIZE, GAMMA, LR, TAU, UPDATE_EVERY, UPDATE_TARGET, DQNCnn)
 
@@ -108,24 +108,18 @@ def train(n_episodes=1000):
         eps = epsilon_by_epsiode(i_episode)
 
         # Punish the agent for not moving forward
-        prev_state = 3
-        timestamp = 0
 
-        while timestamp < 10000:
+        while True:
             action = agent.act(state, eps)
             next_state, reward, done, info = env.step(possible_actions[action])
-            env.render()
+
+            if i_episode % 200 == 0:
+                env.render()
+
             score = reward
 
-            timestamp += 1
-
-            # Punish the agent for standing still for too long.
-            if (info['Lives'] < prev_state) and prev_state != 0:
-                prev_state -= 1
-                reward -= 1000
-
             if done:
-                reward -= 1000000
+                reward = -3000
 
             next_state = stack_frames(state, next_state, False)
             agent.step(state, action, reward, next_state, done)
