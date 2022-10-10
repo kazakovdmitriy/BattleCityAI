@@ -12,12 +12,7 @@ from algos.preprocessing.stack_frame import preprocess_frame, stack_frame
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-retro.data.Integrations.add_custom_path(
-    os.path.join(SCRIPT_DIR, "custom_integrations")
-)
-
-env = retro.make("BattleCity-Nes", inttype=retro.data.Integrations.ALL)
+env = retro.make("SuperMarioBros-Nes", inttype=retro.data.Integrations.ALL)
 env.seed(0)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -30,35 +25,32 @@ env.reset()
 possible_actions = {
     # No Operation
     0: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    # Up
-    1: [1, 0, 0, 0, 1, 0, 0, 0, 0],
-    # Down
-    2: [1, 0, 0, 0, 0, 1, 0, 0, 0],
     # Left
+    1: [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    # Right
+    2: [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    # Left + b
+    3: [0, 1, 0, 0, 0, 0, 1, 0, 0],
+    # Right + b
+    4: [0, 1, 0, 0, 0, 0, 0, 1, 0],
+    # Left + a
     3: [1, 0, 0, 0, 0, 0, 1, 0, 0],
-    # Right
+    # Right + a
     4: [1, 0, 0, 0, 0, 0, 0, 1, 0],
+    # b
+    5: [0, 1, 0, 0, 0, 0, 0, 0, 0],
     # a
-    5: [1, 0, 0, 0, 0, 0, 0, 0, 0],
-    # Up
-    6: [0, 0, 0, 0, 1, 0, 0, 0, 0],
-    # Down
-    7: [0, 0, 0, 0, 0, 1, 0, 0, 0],
-    # Left
-    8: [0, 0, 0, 0, 0, 0, 1, 0, 0],
-    # Right
-    9: [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    6: [1, 0, 0, 0, 0, 0, 0, 0, 0],
 }
 
-
-def random_play():
+def random_play(action_n):
     score = 0
     env.reset()
 
     for i in range(2000):
         env.render()
         action = possible_actions[np.random.randint(len(possible_actions))]
-        state, reward, done, _ = env.step(action)
+        state, reward, done, _ = env.step(possible_actions[action_n])
         score += reward
         if done:
             print("Your Score at end of game is: ", score)
@@ -77,7 +69,7 @@ INPUT_SHAPE = (4, 84, 84)
 ACTION_SIZE = len(possible_actions)
 SEED = 0
 GAMMA = 0.99          # discount factor
-BUFFER_SIZE = 50000   # replay buffer size
+BUFFER_SIZE = 100000   # replay buffer size
 BATCH_SIZE = 32        # Update batch size
 LR = 0.0001            # learning rate
 TAU = 1e-3             # for soft update of target parameters
@@ -85,7 +77,7 @@ UPDATE_EVERY = 1000     # how often to update the network
 UPDATE_TARGET = 10000  # After which thershold replay to be started
 EPS_START = 0.99       # starting value of epsilon
 EPS_END = 0.01         # Ending value of epsilon
-EPS_DECAY = 200         # Rate by which epsilon to be decayed
+EPS_DECAY = 500         # Rate by which epsilon to be decayed
 
 agent = DQNAgent(INPUT_SHAPE, ACTION_SIZE, SEED, device, BUFFER_SIZE, BATCH_SIZE, GAMMA, LR, TAU, UPDATE_EVERY, UPDATE_TARGET, DQNCnn)
 
@@ -123,6 +115,7 @@ def train(n_episodes=1000):
             next_state = stack_frames(state, next_state, False)
             agent.step(state, action, reward, next_state, done)
             state = next_state
+
             if done:
                 break
 
@@ -152,5 +145,6 @@ def main():
 
 
 if __name__ == "__main__":
+    # random_play(6)
     scores = train(1000)
-    main()
+    #main()

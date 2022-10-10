@@ -56,9 +56,9 @@ ALPHA= 0.0001          # Actor learning rate
 BETA = 0.0001          # Critic learning rate
 TAU = 0.95
 BATCH_SIZE = 32
-PPO_EPOCH = 5
+PPO_EPOCH = 15
 CLIP_PARAM = 0.2
-UPDATE_EVERY = 1000     # how often to update the network
+UPDATE_EVERY = 300     # how often to update the network
 
 
 agent = PPOAgent(INPUT_SHAPE, ACTION_SIZE, SEED, device, GAMMA, ALPHA, BETA, TAU, UPDATE_EVERY, BATCH_SIZE, PPO_EPOCH, CLIP_PARAM, ActorCnn, CriticCnn)
@@ -78,26 +78,14 @@ def train(n_episodes=1000):
         state = stack_frames(None, env.reset(), True)
         score = 0
 
-        # Punish the agent for not moving forward
-        prev_state = {}
-        steps_stuck = 0
-        timestamp = 0
-        while timestamp < 10000:
+        while True:
             action, log_prob, value = agent.act(state)
             next_state, reward, done, info = env.step(possible_actions[action])
             env.render()
             score += reward
 
-            timestamp += 1
-            # Punish the agent for standing still for too long.
-            if (prev_state == info):
-                steps_stuck += 1
-            else:
-                steps_stuck = 0
-            prev_state = info
-
-            if (steps_stuck > 20):
-                reward -= 1
+            if done:
+                reward = -1000
 
             next_state = stack_frames(state, next_state, False)
             agent.step(state, action, value, log_prob, reward, done, next_state)
@@ -132,5 +120,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # scores = train(500)
-    main()
+    scores = train(500)
+    # main()

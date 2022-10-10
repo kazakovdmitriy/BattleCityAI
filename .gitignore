@@ -5,3 +5,6 @@ roms
 gym-retro
 models/ppo/
 models/a2c/
+.DS_Store
+custom_integrations/.DS_Store
+chapter3.py

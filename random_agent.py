@@ -21,11 +21,11 @@ possible_actions = {
 
 
 def main():
-    retro.data.Integrations.add_custom_path(
-        os.path.join(SCRIPT_DIR, "custom_integrations")
-    )
+    # retro.data.Integrations.add_custom_path(
+    #     os.path.join(SCRIPT_DIR, "custom_integrations")
+    # )
 
-    env = retro.make("BattleCity-Nes", inttype=retro.data.Integrations.ALL)
+    env = retro.make("BattleCity-Nes") #, inttype=retro.data.Integrations.ALL)
     env.seed(0)
     obs = env.reset()
 
@@ -35,8 +35,6 @@ def main():
 
         obs, rew, done, info = env.step(action)
         env.render()
-
-        print(info)
 
         if done:
             print(f"Total reward: {rew}")
