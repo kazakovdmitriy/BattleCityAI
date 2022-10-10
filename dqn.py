@@ -12,11 +12,6 @@ from algos.preprocessing.stack_frame import preprocess_frame, stack_frame
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-retro.data.Integrations.add_custom_path(
-    os.path.join(SCRIPT_DIR, "custom_integrations")
-)
-
 env = retro.make("BattleCity-Nes", inttype=retro.data.Integrations.ALL)
 env.seed(0)
 
@@ -30,24 +25,16 @@ env.reset()
 possible_actions = {
     # No Operation
     0: [0, 0, 0, 0, 0, 0, 0, 0, 0],
-    # Up
-    1: [1, 0, 0, 0, 1, 0, 0, 0, 0],
-    # Down
-    2: [1, 0, 0, 0, 0, 1, 0, 0, 0],
-    # Left
-    3: [1, 0, 0, 0, 0, 0, 1, 0, 0],
-    # Right
-    4: [1, 0, 0, 0, 0, 0, 0, 1, 0],
     # a
-    5: [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    1: [1, 0, 0, 0, 0, 0, 0, 0, 0],
     # Up
-    6: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+    2: [0, 0, 0, 0, 1, 0, 0, 0, 0],
     # Down
-    7: [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    3: [0, 0, 0, 0, 0, 1, 0, 0, 0],
     # Left
-    8: [0, 0, 0, 0, 0, 0, 1, 0, 0],
+    4: [0, 0, 0, 0, 0, 0, 1, 0, 0],
     # Right
-    9: [0, 0, 0, 0, 0, 0, 0, 1, 0],
+    5: [0, 0, 0, 0, 0, 0, 0, 1, 0],
 }
 
 
@@ -81,7 +68,7 @@ BUFFER_SIZE = 50000   # replay buffer size
 BATCH_SIZE = 32        # Update batch size
 LR = 0.0001            # learning rate
 TAU = 1e-3             # for soft update of target parameters
-UPDATE_EVERY = 1000     # how often to update the network
+UPDATE_EVERY = 500     # how often to update the network
 UPDATE_TARGET = 10000  # After which thershold replay to be started
 EPS_START = 0.99       # starting value of epsilon
 EPS_END = 0.01         # Ending value of epsilon
@@ -110,8 +97,7 @@ def train(n_episodes=1000):
         score = 0
         eps = epsilon_by_epsiode(i_episode)
 
-        if i_episode % 100 == 0:
-            ind = 0
+        lives = 3
 
         while True:
             action = agent.act(state, eps)
@@ -119,9 +105,18 @@ def train(n_episodes=1000):
             env.render()
 
             score += reward
+            rew = reward
 
             next_state = stack_frames(state, next_state, False)
-            agent.step(state, action, reward, next_state, done)
+
+            if done and info['Lives'] > 0:
+                rew = -10
+
+            if info['Lives'] < lives:
+                lives -= 1
+                rew = -5
+
+            agent.step(state, action, rew, next_state, done)
             state = next_state
             if done:
                 break
@@ -133,11 +128,15 @@ def train(n_episodes=1000):
         print(f'\rEpisode {i_episode}\tAverage Score: {np.mean(scores_window):.2f}\tEpsilon: {eps:.6f}\tInd: {ind}',
               end="")
 
+        if i_episode % 3 == 0:
+            agent.save(SCRIPT_DIR + "/models/dqn")
+
     return scores
 
 
 def main():
     env.viewer = None
+    agent.load(SCRIPT_DIR + "/models/dqn")
     # watch an untrained agent
     state = stack_frames(None, env.reset(), True)
     for j in range(10000):

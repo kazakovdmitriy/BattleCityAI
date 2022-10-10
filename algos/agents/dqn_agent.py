@@ -5,6 +5,7 @@ import torch.optim as optim
 import random
 from ..utils.replay_buffer import ReplayBuffer
 
+
 class DQNAgent():
     def __init__(self, input_shape, action_size, seed, device, buffer_size, batch_size, gamma, lr, tau, update_every, replay_after, model):
         """Initialize an Agent object.
@@ -36,7 +37,6 @@ class DQNAgent():
         self.DQN = model
         self.tau = tau
 
-        
         # Q-Network
         self.policy_net = self.DQN(input_shape, action_size).to(self.device)
         self.target_net = self.DQN(input_shape, action_size).to(self.device)
@@ -47,7 +47,14 @@ class DQNAgent():
         
         self.t_step = 0
 
-    
+    def save(self, path):
+        torch.save(self.policy_net, f"{path}/policy_net.pth")
+        torch.save(self.target_net, f"{path}/target_net.pth")
+
+    def load(self, path):
+        self.policy_net = torch.load(f"{path}/policy_net.pth")
+        self.target_net = torch.load(f"{path}/target_net.pth")
+
     def step(self, state, action, reward, next_state, done):
         # Save experience in replay memory
         self.memory.add(state, action, reward, next_state, done)

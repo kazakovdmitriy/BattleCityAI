@@ -12,11 +12,6 @@ from algos.preprocessing.stack_frame import preprocess_frame, stack_frame
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-
-retro.data.Integrations.add_custom_path(
-    os.path.join(SCRIPT_DIR, "custom_integrations")
-)
-
 env = retro.make("BattleCity-Nes", inttype=retro.data.Integrations.ALL)
 env.seed(0)
 
